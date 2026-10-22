@@ -3,8 +3,26 @@
 
 const readline = require('node:readline');
 
+function modulo(a, b) {
+  if (b === 0) {
+    throw new Error('Cannot calculate modulo by zero.');
+  }
+  return a % b;
+}
+
+function power(base, exponent) {
+  return base ** exponent;
+}
+
+function squareRoot(n) {
+  if (n < 0) {
+    throw new Error('Cannot calculate the square root of a negative number.');
+  }
+  return Math.sqrt(n);
+}
+
 // Supported operations: addition (+), subtraction (-), multiplication (*, ×),
-// and division (/, ÷).
+// division (/, ÷), modulo (%), exponentiation (^), and square root (sqrt).
 const operations = {
   '+': (left, right) => left + right,
   '-': (left, right) => left - right,
@@ -12,18 +30,30 @@ const operations = {
   '×': (left, right) => left * right,
   '/': (left, right) => left / right,
   '÷': (left, right) => left / right,
+  '%': modulo,
+  '^': power,
 };
 
 const numberPattern = '-?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:e[+-]?\\d+)?';
+const squareRootPattern = new RegExp(`^\\s*sqrt\\s*\\(\\s*(${numberPattern})\\s*\\)\\s*$`, 'i');
 const expressionPattern = new RegExp(
-  `^\\s*(${numberPattern})\\s*([+*/×÷-])\\s*(${numberPattern})\\s*$`,
+  `^\\s*(${numberPattern})\\s*([+*/×÷%^-])\\s*(${numberPattern})\\s*$`,
   'i',
 );
 
 function calculate(expression) {
+  const squareRootMatch = expression.match(squareRootPattern);
+  if (squareRootMatch) {
+    const value = Number(squareRootMatch[1]);
+    if (!Number.isFinite(value)) {
+      throw new Error('Please enter a finite number.');
+    }
+    return squareRoot(value);
+  }
+
   const match = expression.match(expressionPattern);
   if (!match) {
-    throw new Error('Enter a calculation with two numbers and +, -, *, or /.');
+    throw new Error('Enter a calculation with two numbers and a supported operator, or sqrt(number).');
   }
 
   const [, leftText, operator, rightText] = match;
@@ -43,7 +73,7 @@ function calculate(expression) {
 function printUsage() {
   console.log('Usage: node src/calculator.js [calculation]');
   console.log('Example: node src/calculator.js "12 + 5"');
-  console.log('Supported operations: +, -, *, / (also × and ÷).');
+  console.log('Supported operations: +, -, *, /, %, ^, sqrt(number) (also × and ÷).');
   console.log('Run without a calculation to use interactive mode; enter q to quit.');
 }
 
@@ -96,4 +126,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { calculate };
+module.exports = { calculate, modulo, power, squareRoot };

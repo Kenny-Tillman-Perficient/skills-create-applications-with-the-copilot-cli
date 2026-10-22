@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
 const path = require('node:path');
 const test = require('node:test');
-const { calculate } = require('../calculator');
+const { calculate, modulo, power, squareRoot } = require('../calculator');
 
 const calculatorPath = path.join(__dirname, '..', 'calculator.js');
 
@@ -18,6 +18,32 @@ test('calculates the examples from the basic operations image', () => {
 test('supports multiplication and division symbols from the calculator image', () => {
   assert.equal(calculate('6 × 7'), 42);
   assert.equal(calculate('21 ÷ 3'), 7);
+});
+
+test('provides modulo, power, and square root functions', () => {
+  assert.equal(modulo(10, 3), 1);
+  assert.equal(power(2, 3), 8);
+  assert.equal(squareRoot(81), 9);
+  assert.throws(() => modulo(10, 0), /modulo by zero/);
+  assert.throws(() => squareRoot(-1), /square root of a negative number/);
+});
+
+test('supports modulo, exponentiation, and square root expressions', () => {
+  assert.equal(calculate('5 % 2'), 1);
+  assert.equal(calculate('2 ^ 3'), 8);
+  assert.equal(calculate('sqrt(16)'), 4);
+  assert.equal(calculate('10 % 3'), 1);
+  assert.equal(calculate('sqrt(81)'), 9);
+});
+
+test('handles edge cases for modulo, power, and square root', () => {
+  assert.equal(modulo(-5, 2), -1);
+  assert.throws(() => modulo(5, 0), /modulo by zero/);
+  assert.equal(power(5, 0), 1);
+  assert.equal(power(2, -2), 0.25);
+  assert.equal(squareRoot(0), 0);
+  assert.throws(() => squareRoot(-1), /square root of a negative number/);
+  assert.throws(() => calculate('sqrt(-1)'), /square root of a negative number/);
 });
 
 test('supports decimals, negative values, and scientific notation', () => {
@@ -37,7 +63,7 @@ test('rejects division by zero for both division symbols', () => {
 });
 
 test('rejects malformed expressions and unsupported operations', () => {
-  for (const expression of ['2 ^ 3', '1 + 2 + 3', 'hello', '']) {
+  for (const expression of ['2 & 3', '1 + 2 + 3', 'hello', '']) {
     assert.throws(() => calculate(expression), /Enter a calculation/);
   }
 });
@@ -66,7 +92,7 @@ test('shows usage information with --help', () => {
   });
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Supported operations: \+, -, \*, \//);
+  assert.match(result.stdout, /Supported operations: \+, -, \*, \/, %, \^, sqrt\(number\)/);
 });
 
 test('supports calculations in interactive mode and exits on q', () => {
